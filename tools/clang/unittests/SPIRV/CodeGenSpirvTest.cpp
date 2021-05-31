@@ -69,6 +69,9 @@ TEST_F(FileTest, TypedefTypes) { runFileTest("type.typedef.hlsl"); }
 TEST_F(FileTest, SamplerTypes) { runFileTest("type.sampler.hlsl"); }
 TEST_F(FileTest, TextureTypes) { runFileTest("type.texture.hlsl"); }
 TEST_F(FileTest, RWTextureTypes) { runFileTest("type.rwtexture.hlsl"); }
+TEST_F(FileTest, RWTextureTypesWithMinPrecisionScalarTypes) {
+  runFileTest("type.rwtexture.with.min.precision.scalar.hlsl");
+}
 TEST_F(FileTest, BufferType) { runFileTest("type.buffer.hlsl"); }
 TEST_F(FileTest, BufferTypeStructError1) {
   runFileTest("type.buffer.struct.error1.hlsl", Expect::Failure);
@@ -450,6 +453,9 @@ TEST_F(FileTest, CastFlatConversionArrayToVector) {
 }
 TEST_F(FileTest, CastImplicitFlatConversion) {
   runFileTest("cast.flat-conversion.implicit.hlsl");
+}
+TEST_F(FileTest, CastFlatConversionDeclRef) {
+  runFileTest("cast.flat-conversion.decl-ref.hlsl");
 }
 TEST_F(FileTest, CastFlatConversionStruct) {
   runFileTest("cast.flat-conversion.struct.hlsl");
@@ -1076,6 +1082,9 @@ TEST_F(FileTest, IntrinsicsAsDouble) {
 TEST_F(FileTest, IntrinsicsAsfloat) { runFileTest("intrinsics.asfloat.hlsl"); }
 TEST_F(FileTest, IntrinsicsAsint) { runFileTest("intrinsics.asint.hlsl"); }
 TEST_F(FileTest, IntrinsicsAsuint) { runFileTest("intrinsics.asuint.hlsl"); }
+TEST_F(FileTest, IntrinsicsAsuintArgumentMustBeRValue) {
+  runFileTest("intrinsics.asuint.rvalue.hlsl");
+}
 TEST_F(FileTest, IntrinsicsRound) { runFileTest("intrinsics.round.hlsl"); }
 TEST_F(FileTest, IntrinsicsAbs) { runFileTest("intrinsics.abs.hlsl"); }
 TEST_F(FileTest, IntrinsicsCross) { runFileTest("intrinsics.cross.hlsl"); }
@@ -1562,6 +1571,22 @@ TEST_F(FileTest, SpirvStageIOInterfacePS) {
 
 TEST_F(FileTest, SpirvStageIOAliasBuiltIn) {
   runFileTest("spirv.interface.alias-builtin.hlsl");
+}
+
+TEST_F(FileTest, SpirvInterfacesForMultipleEntryPointsSimple) {
+  runFileTest("spirv.interface.multiple.entries.simple.hlsl");
+}
+TEST_F(FileTest, SpirvInterfacesForMultipleEntryPointsBuiltIn) {
+  runFileTest("spirv.interface.multiple.entries.built-in.hlsl");
+}
+TEST_F(FileTest, SpirvInterfacesForMultipleEntryPointsBuiltInVulkan1p2) {
+  runFileTest("spirv.interface.multiple.entries.built-in.vk.1p2.hlsl");
+}
+TEST_F(FileTest, SpirvInterfacesForMultipleEntryPoints) {
+  runFileTest("spirv.interface.multiple.entries.hlsl");
+}
+TEST_F(FileTest, SpirvInterfacesForMultipleEntryPointsVulkan1p2) {
+  runFileTest("spirv.interface.multiple.entries.vk.1p2.hlsl");
 }
 
 // For testing UserSemantic decoration
