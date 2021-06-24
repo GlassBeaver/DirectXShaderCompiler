@@ -72,6 +72,9 @@ TEST_F(FileTest, RWTextureTypes) { runFileTest("type.rwtexture.hlsl"); }
 TEST_F(FileTest, RWTextureTypesWithMinPrecisionScalarTypes) {
   runFileTest("type.rwtexture.with.min.precision.scalar.hlsl");
 }
+TEST_F(FileTest, RWTextureTypesWith64bitsScalarTypes) {
+  runFileTest("type.rwtexture.with.64bit.scalar.hlsl");
+}
 TEST_F(FileTest, BufferType) { runFileTest("type.buffer.hlsl"); }
 TEST_F(FileTest, BufferTypeStructError1) {
   runFileTest("type.buffer.struct.error1.hlsl", Expect::Failure);
@@ -976,6 +979,17 @@ TEST_F(FileTest, TextureInvalidTex2D) {
 }
 TEST_F(FileTest, TextureSampleOffsetWithLoopUnroll) {
   runFileTest("texture.sample-offset.with.loop-unroll.hlsl");
+}
+TEST_F(FileTest, TextureSampleVariableOffsetBeforeLegalizeHLSL) {
+  setBeforeHLSLLegalization();
+  runFileTest("texture.sample.variable-offset.hlsl");
+}
+TEST_F(FileTest, TextureSampleOffsetNeedsLegalization) {
+  setBeforeHLSLLegalization();
+  runFileTest("texture.sample.offset.needs.legalization.hlsl");
+}
+TEST_F(FileTest, TextureSampleConstOffsetAfterLegalization) {
+  runFileTest("texture.sample.offset.needs.legalization.o0.hlsl");
 }
 
 // For structured buffer methods

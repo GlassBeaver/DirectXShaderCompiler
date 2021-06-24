@@ -664,14 +664,16 @@ void SpirvEmitter::HandleTranslationUnit(ASTContext &context) {
   // Output the constructed module.
   std::vector<uint32_t> m = spvBuilder.takeModule();
 
-  if (!spirvOptions.codeGenHighLevel) {
-    // In order to flatten composite resources, we must also unroll loops.
-    // Therefore we should run legalization before optimization.
-    needsLegalization = needsLegalization ||
-                        declIdMapper.requiresLegalization() ||
-                        spirvOptions.flattenResourceArrays ||
-                        declIdMapper.requiresFlatteningCompositeResources();
+  // In order to flatten composite resources, we must also unroll loops.
+  // Therefore we should run legalization before optimization.
+  needsLegalization = needsLegalization ||
+                      declIdMapper.requiresLegalization() ||
+                      spirvOptions.flattenResourceArrays ||
+                      declIdMapper.requiresFlatteningCompositeResources();
 
+  if (spirvOptions.codeGenHighLevel) {
+    beforeHlslLegalization = needsLegalization;
+  } else {
     // Run legalization passes
     if (needsLegalization) {
       std::string messages;
@@ -2326,7 +2328,7 @@ SpirvInstruction *SpirvEmitter::processCall(const CallExpr *callExpr) {
         // the legalization.
         if (objInstr->getStorageClass() != spv::StorageClass::Function ||
             !isMemoryObjectDeclaration(objInstr))
-          beforeHlslLegalization = true;
+          needsLegalization = true;
 
         args.push_back(objInstr);
       }
@@ -2378,7 +2380,7 @@ SpirvInstruction *SpirvEmitter::processCall(const CallExpr *callExpr) {
       // to function. If we pass an argument that is not function scope
       // or not memory object declaration, we need the legalization.
       if (!argInfo || argInfo->getStorageClass() != spv::StorageClass::Function)
-        beforeHlslLegalization = true;
+        needsLegalization = true;
 
       isTempVar.push_back(false);
       args.push_back(argInst);
@@ -2428,9 +2430,6 @@ SpirvInstruction *SpirvEmitter::processCall(const CallExpr *callExpr) {
       storeValue(tempVar, rhsVal, paramType, arg->getLocStart());
     }
   }
-
-  if (beforeHlslLegalization)
-    needsLegalization = true;
 
   assert(vars.size() == isTempVar.size());
   assert(vars.size() == args.size());
@@ -4468,6 +4467,9 @@ SpirvInstruction *SpirvEmitter::createImageSample(
     SpirvInstruction *minLod, SpirvInstruction *residencyCodeId,
     SourceLocation loc) {
 
+  if (varOffset)
+    needsLegalization = true;
+
   // SampleDref* instructions in SPIR-V always return a scalar.
   // They also have the correct type in HLSL.
   if (compareVal) {
@@ -4899,6 +4901,9 @@ SpirvEmitter::processBufferTextureLoad(const CXXMemberCallExpr *expr) {
       if (hasOffsetArg)
         handleOffsetInMethodCall(expr, 1, &constOffset, &varOffset);
     }
+
+    if (varOffset)
+      needsLegalization = true;
 
     return processBufferTextureLoad(object, coordinate, constOffset, varOffset,
                                     lod, status, loc);
@@ -12311,8 +12316,7 @@ bool SpirvEmitter::spirvToolsValidate(std::vector<uint32_t> *mod,
                  const char *message) { *messages += message; });
 
   spvtools::ValidatorOptions options;
-  options.SetBeforeHlslLegalization(needsLegalization ||
-                                    declIdMapper.requiresLegalization());
+  options.SetBeforeHlslLegalization(beforeHlslLegalization);
   // GL: strict block layout rules
   // VK: relaxed block layout rules
   // DX: Skip block layout rules
